@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:statamic.dev)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nadd antlers tags instruction for HTML conversion\n\nAdd Rule 4 to guide LLM on using built-in Antlers tags \\(nav, form, collection, svg, asset, partial, etc.\\) instead of hardcoding HTML. Includes comprehensive examples for navigation, breadcrumbs, forms, SVG icons, collection listings, assets, partials, and auth forms. Reference Statamic docs at https://statamic.dev/tags/all-tags\n\nCo-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nadd .gitignore to exclude .claude directory\n\nCo-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(dir:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}
