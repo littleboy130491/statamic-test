@@ -2,12 +2,34 @@
 
 Create Statamic entry files with dummy content for collections and pages.
 
+## Scope
+
+**You MUST only create files at:**
+- Single site: `content/collections/{collection}/{slug}.md` or `content/collections/{collection}/{date}.{slug}.md`
+- Multisite (default site only): `content/collections/{collection}/{default-site-handle}/{slug}.md` or `content/collections/{collection}/{default-site-handle}/{date}.{slug}.md`
+
+Do NOT create, edit, or modify any other files — including but not limited to:
+- Translation entries for non-default sites — use `create-translations` skill instead
+- Blueprint files (`resources/blueprints/`) — use `create-blueprints` skill instead
+- Collection config files (`content/collections/*.yaml`) — use `create-collections` skill instead
+- Taxonomy config files (`content/taxonomies/`) — use `create-taxonomies` skill instead
+- View/template files (`resources/views/`)
+- Config files (`config/`)
+- Fieldset files (`resources/fieldsets/`)
+- Routes, controllers, or any PHP files
+- CSS, JS, or frontend assets
+
+You may **read** other project files (e.g., `resources/sites.yaml`, blueprints, collection configs) to inform your work, but do not modify them.
+
+If the task requires changes outside the allowed paths, stop and inform the user — do not make those changes yourself.
+
 ## Quick Start
 
-1. **Detect multisite first** — Check `resources/sites.yaml`
-2. Check blueprint for available fields
+1. **Detect multisite first** — Read `resources/sites.yaml` (read only)
+2. **Read the blueprint** — Read the blueprint at `resources/blueprints/collections/{collection}/` (read only). If no specific blueprint exists, check `resources/blueprints/default.yaml`
 3. Create `.md` file with YAML frontmatter + optional markdown content
 4. Generate UUID for `id` field
+5. **Multisite only** — Create entries for the default site only. For non-default site translations, use the `create-translations` skill
 
 ## Entry Paths
 
@@ -15,146 +37,46 @@ Create Statamic entry files with dummy content for collections and pages.
 - Standard: `content/collections/{collection}/{slug}.md`
 - Dated: `content/collections/{collection}/{date}.{slug}.md`
 
-**Multisite:**
-- Standard: `content/collections/{collection}/{site}/{slug}.md`
-- Dated: `content/collections/{collection}/{site}/{date}.{slug}.md`
+**Multisite (default site only):**
+- Standard: `content/collections/{collection}/{default-site-handle}/{slug}.md`
+- Dated: `content/collections/{collection}/{default-site-handle}/{date}.{slug}.md`
+
+Do NOT create entry files under non-default site directories — use the `create-translations` skill for those.
 
 ## Entry Structure
 
+1. Read the blueprint file at `resources/blueprints/collections/{collection}/{blueprint}.yaml` — **read only, do not modify**
+2. Use the fields defined in the blueprint to build the YAML frontmatter
+3. Add `id` (UUID) and `title` as required fields
+4. Populate each field from the blueprint with appropriate dummy content matching its fieldtype
+5. If the blueprint has a `bard` or `markdown` field named `content`, place that content after the closing `---` as markdown body
+
+**Single site:**
 ```yaml
 ---
-id: 550e8400-e29b-41d4-a716-446655440000
-title: My Page Title
-blueprint: page
-published: true
-slug: my-page
-template: pages/default
-author: user-uuid
-custom_field: value
+id: {generated-uuid}
+title: {entry title}
+blueprint: {blueprint handle}
+{field_from_blueprint}: {value matching fieldtype}
 ---
-Optional markdown content goes here.
-
-This becomes the `content` field.
+{markdown body if blueprint has a content field}
 ```
 
-## Required Fields
-
-- `id` — Unique UUID (auto-generate)
-- `title` — Entry title
-
-## Common Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | UUID | Unique identifier (required) |
-| `title` | string | Entry title (required) |
-| `blueprint` | string | Blueprint handle (if not default) |
-| `published` | boolean | Publication status |
-| `slug` | string | URL slug |
-| `date` | date | Publication date (dated collections) |
-| `template` | string | Override template |
-| `layout` | string | Override layout |
-| `author` | UUID/array | User reference |
-
-## Field Value Formats
-
-### Text
+**Multisite (default site entry):**
 ```yaml
-title: My Title
-tagline: 'Value with "quotes"'
+---
+id: {generated-uuid}
+title: {entry title}
+blueprint: {blueprint handle}
+sites:
+  - {site_1}
+  - {site_2}
+{field_from_blueprint}: {value matching fieldtype}
+---
+{markdown body if blueprint has a content field}
 ```
 
-### Multiline
-```yaml
-description: |
-  First paragraph.
-
-  Second paragraph.
-```
-
-### Single Asset
-```yaml
-hero_image: images/hero.jpg
-```
-
-### Multiple Assets
-```yaml
-gallery:
-  - images/photo1.jpg
-  - images/photo2.jpg
-```
-
-### Replicator
-```yaml
-sections:
-  -
-    type: hero
-    heading: Welcome
-    image: images/hero.jpg
-  -
-    type: text_block
-    content: 'Some content here...'
-  -
-    type: features
-    items:
-      -
-        title: Feature 1
-        description: Description 1
-```
-
-### Grid
-```yaml
-team_members:
-  -
-    name: John Doe
-    role: CEO
-    photo: team/john.jpg
-  -
-    name: Jane Smith
-    role: CTO
-```
-
-### Bard (Rich Text)
-```yaml
-content:
-  -
-    type: paragraph
-    content:
-      -
-        type: text
-        text: 'This is a paragraph.'
-  -
-    type: heading
-    attrs:
-      level: 2
-    content:
-      -
-        type: text
-        text: 'Subheading'
-```
-
-### Entries Relationship
-```yaml
-related_posts:
-  - post-uuid-1
-  - post-uuid-2
-```
-
-### Terms
-```yaml
-categories:
-  - news
-  - technology
-tags:
-  - featured
-```
-
-### Link
-```yaml
-cta_link: /contact
-# or entry reference
-cta_link: 'entry::page-uuid'
-```
+The `sites` field lists all site keys from `resources/sites.yaml` where this entry should be available. Only include `sites` on default site entries.
 
 ## Generating UUIDs
 
@@ -179,115 +101,28 @@ date: '2024-01-15'
 ---
 ```
 
-## Structured Collections (Pages)
+## Rules
 
-For structured collections, entries are also referenced in tree file:
-
-**Tree:** `content/trees/collections/{collection}.yaml`
-```yaml
-tree:
-  -
-    entry: home-uuid
-  -
-    entry: about-uuid
-    children:
-      -
-        entry: team-uuid
-```
-
-## Dummy Content Examples
-
-### Blog Post
-```yaml
----
-id: 550e8400-e29b-41d4-a716-446655440001
-title: Getting Started with Statamic
-blueprint: post
-published: true
-date: '2024-01-15'
-author: admin-user-uuid
-featured_image: blog/getting-started.jpg
-excerpt: Learn how to get started with Statamic CMS.
-categories:
-  - tutorials
-tags:
-  - beginner
-  - cms
----
-Welcome to Statamic! This guide will help you get started...
-```
-
-### Page
-```yaml
----
-id: 550e8400-e29b-41d4-a716-446655440002
-title: About Us
-blueprint: about
-hero_image: pages/about-hero.jpg
-hero_lead: Building trust since 1999
-story_heading: Our Story
-story_content:
-  -
-    type: paragraph
-    content:
-      -
-        type: text
-        text: 'We started in a small garage in 1999...'
-team_members:
-  -
-    name: John Founder
-    role: CEO
-    photo: team/john.jpg
----
-```
-
-### Product
-```yaml
----
-id: 550e8400-e29b-41d4-a716-446655440003
-title: Premium Widget
-blueprint: product
-price: 99.99
-sku: WIDGET-001
-images:
-  - products/widget-1.jpg
-  - products/widget-2.jpg
-features:
-  -
-    title: Durable
-    description: Built to last
-  -
-    title: Lightweight
-    description: Easy to carry
-published: true
----
-```
-
-## Multisite Entries
-
-Each site has its own entry files. Localizable fields can differ per site.
-
-**English:** `content/collections/pages/english/about.md`
-**Indonesian:** `content/collections/pages/indonesian/about.md`
-
-## Boundaries
-
-- Do NOT create blueprints here — Use `create-blueprints`
-- Do NOT create collection config here — Use `create-collections`
-- Filename is slug-based, NOT UUID-based
+1. **Only create** `.md` entry files at the paths listed in [Entry Paths](#entry-paths). No other files.
+2. **Do not create translation entries** for non-default sites — use `create-translations` skill instead.
+3. **Do not create or edit blueprints** — use `create-blueprints` skill instead.
+4. **Do not create or edit collection configs** — use `create-collections` skill instead.
+5. **Do not create or edit taxonomy configs** — use `create-taxonomies` skill instead.
+6. **Do not create or edit templates, config, routes, PHP, or frontend files.**
+7. You may read any project file to inform your work (blueprints, sites config, collection configs), but do not modify them.
+8. Output `.md` files with valid YAML frontmatter.
+9. Every entry MUST have a unique UUID v4 in the `id` field.
+10. Filename is slug-based, NOT UUID-based.
+11. If multisite is enabled, include the `sites` field listing all site keys. Only default site entries get `sites`.
 
 ## Accuracy Checks
 
-- Entry file is `.md` with YAML frontmatter
-- UUID in `id` field, slug in filename
-- Dated entries: date in both filename and frontmatter
-- Replicator items need `type` key matching set name
-- Asset paths relative to container root
-
-## Quick Reference
-
-| Collection Type | Filename Pattern |
-|----------------|------------------|
-| Standard | `{slug}.md` |
-| Dated | `{YYYY-MM-DD}.{slug}.md` |
-| Multisite | `{site}/{slug}.md` |
+Before finishing, verify:
+- [ ] Entry file is `.md` with valid YAML frontmatter
+- [ ] File path matches the correct pattern from [Entry Paths](#entry-paths)
+- [ ] `id` field contains a unique UUID v4
+- [ ] Filename uses slug, not UUID
+- [ ] Dated entries have date in both filename and frontmatter
+- [ ] If multisite: entry is under the default site directory only, with `sites` field listing all site keys
+- [ ] No translation entries for non-default sites were created (use `create-translations` for those)
+- [ ] No blueprints, collection configs, templates, or other out-of-scope files were created or edited
